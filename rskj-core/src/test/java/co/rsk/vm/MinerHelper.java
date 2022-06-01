@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.LongAccumulator;
 
 /**
  * Created by Sergio on 18/07/2016.
@@ -73,6 +74,8 @@ public class MinerHelper {
         totalGasUsed = 0;
         totalPaidFees = Coin.ZERO;
         txReceipts = new ArrayList<>();
+        LongAccumulator remascFees = new LongAccumulator(Long::sum, 0);
+
 
         Repository track = repositoryLocator.startTrackingAt(parent.getHeader());
 
@@ -105,7 +108,7 @@ public class MinerHelper {
                     null,
                     new PrecompiledContracts(config, bridgeSupportFactory, signatureCache), blockTxSignatureCache);
             TransactionExecutor executor = transactionExecutorFactory
-                    .newInstance(tx, txindex++, block.getCoinbase(), track, block, totalGasUsed);
+                    .newInstance(tx, txindex++, block.getCoinbase(), track, block, totalGasUsed, remascFees);
 
             executor.executeTransaction();
 
@@ -113,6 +116,18 @@ public class MinerHelper {
             Coin paidFees = executor.getPaidFees();
             totalGasUsed += gasUsed;
             totalPaidFees = totalPaidFees.add(paidFees);
+
+            /*
+            * This method is a helper of the test "testSEND_1". It is replicating the
+            * behavior of BlockExecutor but slightly different. In the BlockExecutor, the
+            * fees are sent to the Remasc address once all the transactions are executed.
+            * Since the only test using this helper processes one transaction, so the loop has no sense.
+            * */
+            long fees = remascFees.get();
+            if (fees > 0) {
+                track.addBalance(PrecompiledContracts.REMASC_ADDR, Coin.valueOf(fees));
+                track.commit();
+            }
 
             track.commit();
 
