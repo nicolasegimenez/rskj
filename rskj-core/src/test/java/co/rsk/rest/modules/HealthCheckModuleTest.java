@@ -15,29 +15,30 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package co.rsk.rpc.netty.rest.modules;
+package co.rsk.rest.modules;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
-public class HealthCheckModuleTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class HealthCheckModuleTest {
 
     private HealthCheckModule healthCheckModule;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        healthCheckModule = new HealthCheckModule();
+        healthCheckModule = new HealthCheckModule("url.path", true);
     }
 
     @Test
-    public void testProcessRequest_getMethod_pingUri_returnsPongMessage() {
+    void testProcessRequest_getMethod_pingUri_returnsPongMessage() {
         // Given
         String url = "/health-check/ping";
         HttpMethod method = HttpMethod.GET;
@@ -46,14 +47,14 @@ public class HealthCheckModuleTest {
         DefaultFullHttpResponse response = healthCheckModule.processRequest(url, method);
 
         // Then
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpResponseStatus.OK, response.getStatus());
-        Assert.assertEquals(Unpooled.copiedBuffer("pong", StandardCharsets.UTF_8),
+        assertNotNull(response);
+        assertEquals(HttpResponseStatus.OK, response.getStatus());
+        assertEquals(Unpooled.copiedBuffer("pong", StandardCharsets.UTF_8),
                 response.content());
     }
 
     @Test
-    public void testProcessRequest_unsupportedMethod_pingUri_returnsNull() {
+    void testProcessRequest_unsupportedMethod_pingUri_returnsNull() {
         // Given
         String url = "/health-check/ping";
         HttpMethod method = HttpMethod.POST;
@@ -62,11 +63,11 @@ public class HealthCheckModuleTest {
         DefaultFullHttpResponse response = healthCheckModule.processRequest(url, method);
 
         // Then
-        Assert.assertNull(response);
+        assertNull(response);
     }
 
     @Test
-    public void testProcessRequest_unsupportedUri_returnsNull() {
+    void testProcessRequest_unsupportedUri_returnsNull() {
         // Given
         String url = "/health-check/foo";
 
@@ -74,7 +75,7 @@ public class HealthCheckModuleTest {
         DefaultFullHttpResponse response = healthCheckModule.processRequest(url, HttpMethod.GET);
 
         // Then
-        Assert.assertNull(response);
+        assertNull(response);
     }
 
 }
