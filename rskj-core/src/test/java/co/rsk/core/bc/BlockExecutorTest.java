@@ -104,7 +104,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getTransactionReceipts());
         Assertions.assertTrue(result.getTransactionReceipts().isEmpty());
@@ -127,7 +127,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getTransactionReceipts());
         Assertions.assertFalse(result.getTransactionReceipts().isEmpty());
@@ -179,7 +179,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getTransactionReceipts());
         Assertions.assertFalse(result.getTransactionReceipts().isEmpty());
@@ -232,7 +232,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertNotNull(result);
 
         Assertions.assertNotNull(result.getTransactionReceipts());
@@ -323,7 +323,7 @@ public class BlockExecutorTest {
         byte[] calculatedReceiptsRoot = BlockHashesHelper.calculateReceiptsTrieRoot(result.getTransactionReceipts(), true);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertArrayEquals(calculatedReceiptsRoot, block.getReceiptsRoot());
         Assertions.assertArrayEquals(result.getFinalState().getHash().getBytes(), block.getStateRoot());
         Assertions.assertEquals(result.getGasUsed(), block.getGasUsed());
@@ -389,7 +389,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         // Check tx2 was excluded
         Assertions.assertEquals(1, block.getTransactionsList().size());
         Assertions.assertEquals(tx, block.getTransactionsList().get(0));
@@ -457,7 +457,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertSame(BlockResult.INTERRUPTED_EXECUTION_BLOCK_RESULT, result);
     }
 
@@ -490,7 +490,7 @@ public class BlockExecutorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void executeSequentiallyTenIndependentTxsAndThemShouldGoInBothBuckets(boolean activeRskip144) {
+    void executeSequentiallyTenIndependentTxsAndThemShouldGoInBothSublists(boolean activeRskip144) {
         if (!activeRskip144) {
             return;
         }
@@ -579,9 +579,9 @@ public class BlockExecutorTest {
         Block parent = blockchain.getBestBlock();
         long blockGasLimit = GasCost.toGas(parent.getGasLimit());
         int gasLimit = 21000;
-        int transactionNumberToFillParallelBucket = (int) (blockGasLimit / gasLimit);
+        int transactionNumberToFillParallelSublist = (int) (blockGasLimit / gasLimit);
         int transactionsInSequential = 1;
-        int totalTxsNumber = transactionNumberToFillParallelBucket * Constants.getTransactionExecutionThreads() + transactionsInSequential;
+        int totalTxsNumber = transactionNumberToFillParallelSublist * Constants.getTransactionExecutionThreads() + transactionsInSequential;
         Block block = getBlockWithNIndependentTransactions(totalTxsNumber, BigInteger.valueOf(gasLimit), false);
         BlockResult blockResult = executor.executeAndFill(block, parent.getHeader());
 
@@ -590,7 +590,7 @@ public class BlockExecutorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void withTheBucketsFullTheLastTransactionShouldNotFit(boolean activeRskip144) {
+    void withTheSublistsFullTheLastTransactionShouldNotFit(boolean activeRskip144) {
         if (!activeRskip144) {
             return;
         }
@@ -599,9 +599,9 @@ public class BlockExecutorTest {
         Block parent = blockchain.getBestBlock();
         long blockGasLimit = GasCost.toGas(parent.getGasLimit());
         int gasLimit = 21000;
-        int transactionNumberToFillParallelBucket = (int) (blockGasLimit / gasLimit);
-        int totalNumberOfBuckets = Constants.getTransactionExecutionThreads() + 1;
-        int totalTxs = (transactionNumberToFillParallelBucket) * totalNumberOfBuckets + 1;
+        int transactionNumberToFillParallelSublist = (int) (blockGasLimit / gasLimit);
+        int totalNumberOfSublists = Constants.getTransactionExecutionThreads() + 1;
+        int totalTxs = (transactionNumberToFillParallelSublist) * totalNumberOfSublists + 1;
         Block block = getBlockWithNIndependentTransactions(totalTxs, BigInteger.valueOf(gasLimit), false);
         BlockResult blockResult = executor.executeAndFill(block, parent.getHeader());
         Assertions.assertEquals(totalTxs, blockResult.getExecutedTransactions().size() + 1);
@@ -609,7 +609,7 @@ public class BlockExecutorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void withSequentialBucketFullRemascTxShouldFit(boolean activeRskip144) {
+    void withSequentialSublistFullRemascTxShouldFit(boolean activeRskip144) {
         if (!activeRskip144) {
             return;
         }
@@ -619,10 +619,10 @@ public class BlockExecutorTest {
         Block parent = blockchain.getBestBlock();
         long blockGasLimit = GasCost.toGas(parent.getGasLimit());
         int gasLimit = 21000;
-        int transactionNumberToFillABucket = (int) (blockGasLimit / gasLimit);
-        int totalNumberOfBuckets = Constants.getTransactionExecutionThreads() + 1;
-        int expectedNumberOfTx = transactionNumberToFillABucket* totalNumberOfBuckets + 1;
-        Block block = getBlockWithNIndependentTransactions(transactionNumberToFillABucket * totalNumberOfBuckets, BigInteger.valueOf(gasLimit), true);
+        int transactionNumberToFillASublist = (int) (blockGasLimit / gasLimit);
+        int totalNumberOfSublists = Constants.getTransactionExecutionThreads() + 1;
+        int expectedNumberOfTx = transactionNumberToFillASublist* totalNumberOfSublists + 1;
+        Block block = getBlockWithNIndependentTransactions(transactionNumberToFillASublist * totalNumberOfSublists, BigInteger.valueOf(gasLimit), true);
         BlockResult blockResult = executor.executeAndFill(block, parent.getHeader());
         Assertions.assertEquals(expectedNumberOfTx, blockResult.getExecutedTransactions().size());
     }
@@ -685,7 +685,7 @@ public class BlockExecutorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void ifThereIsACollisionBetweenParallelAndSequentialBucketItShouldNotBeConsidered(boolean activeRskip144) {
+    void ifThereIsACollisionBetweenParallelAndSequentialSublistsItShouldNotBeConsidered(boolean activeRskip144) {
         if (!activeRskip144) {
             return;
         }
@@ -742,7 +742,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertTrue(executor.validateStateRoot(block.getHeader(), blockResult));
     }
 
@@ -769,7 +769,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[0] : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertTrue(executor.validateStateRoot(block.getHeader(), blockResult));
     }
 
@@ -784,7 +784,7 @@ public class BlockExecutorTest {
 
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertTrue(executor.executeAndValidate(block, parent.getHeader()));
     }
 
@@ -801,7 +801,7 @@ public class BlockExecutorTest {
         stateRoot[0] = (byte) ((stateRoot[0] + 1) % 256);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertFalse(executor.executeAndValidate(block, parent.getHeader()));
     }
 
@@ -818,7 +818,7 @@ public class BlockExecutorTest {
         receiptsRoot[0] = (byte) ((receiptsRoot[0] + 1) % 256);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertFalse(executor.executeAndValidate(block, parent.getHeader()));
     }
 
@@ -834,7 +834,7 @@ public class BlockExecutorTest {
         block.getHeader().setGasUsed(0);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertFalse(executor.executeAndValidate(block, parent.getHeader()));
     }
 
@@ -850,7 +850,7 @@ public class BlockExecutorTest {
         block.getHeader().setPaidFees(Coin.ZERO);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertFalse(executor.executeAndValidate(block, parent.getHeader()));
     }
 
@@ -867,7 +867,7 @@ public class BlockExecutorTest {
         logBloom[0] = (byte) ((logBloom[0] + 1) % 256);
         short[] expectedEdges = activeRskip144 ? new short[]{(short) block.getTransactionsList().size()} : null;
 
-        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionListsEdges());
+        Assertions.assertArrayEquals(expectedEdges, block.getHeader().getTxExecutionSublistsEdges());
         Assertions.assertFalse(executor.executeAndValidate(block, parent.getHeader()));
     }
 
