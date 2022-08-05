@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import co.rsk.Flusher;
 import org.ethereum.core.Block;
 import org.ethereum.core.Blockchain;
 import org.ethereum.core.Transaction;
@@ -29,15 +30,26 @@ public class RskModuleImpl implements RskModule {
     private final BlockStore blockStore;
     private final ReceiptStore receiptStore;
     private final Web3InformationRetriever web3InformationRetriever;
+    private final Flusher flusher;
 
     public RskModuleImpl(Blockchain blockchain,
                          BlockStore blockStore,
                          ReceiptStore receiptStore,
-                         Web3InformationRetriever web3InformationRetriever) {
+                         Web3InformationRetriever web3InformationRetriever,
+                         Flusher flusher) {
         this.blockchain = blockchain;
         this.blockStore = blockStore;
         this.receiptStore = receiptStore;
         this.web3InformationRetriever = web3InformationRetriever;
+        this.flusher = flusher;
+    }
+
+    @Override
+    public void flush() {
+        if (flusher==null)
+            return;
+        flusher.forceFlush();
+
     }
 
     @Override
