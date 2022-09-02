@@ -46,10 +46,11 @@ public class RskModuleImpl implements RskModule {
 
     @Override
     public void flush() {
-        if (flusher==null)
+        if (flusher == null) {
             return;
-        flusher.forceFlush();
+        }
 
+        flusher.forceFlush();
     }
 
     @Override
