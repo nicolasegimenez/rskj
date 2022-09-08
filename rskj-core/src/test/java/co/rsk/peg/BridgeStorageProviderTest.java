@@ -3339,6 +3339,28 @@ public class BridgeStorageProviderTest {
     }
 
     @Test
+    public void getPegoutCreationRskTxHashByBtcTxHash_for_a_null_btcTxHash_after_RSKIP298() {
+        Repository repository = mock(Repository.class);
+
+        ActivationConfig.ForBlock activations = mock(ActivationConfig.ForBlock.class);
+        when(activations.isActive(ConsensusRule.RSKIP298)).thenReturn(true);
+        BridgeStorageProvider provider = new BridgeStorageProvider(
+            repository, PrecompiledContracts.BRIDGE_ADDR,
+            config.getNetworkConstants().getBridgeConstants(), activations
+        );
+
+        Optional<Keccak256> pegoutCreationEntry = provider.getPegoutCreationRskTxHashByBtcTxHash(
+            null
+        );
+        assertFalse(pegoutCreationEntry.isPresent());
+
+        verify(repository, never()).getStorageBytes(
+            any(),
+            any()
+        );
+    }
+
+    @Test
     public void setPegoutCreationEntry_before_RSKIP298() throws IOException {
         Repository repository = mock(Repository.class);
 
