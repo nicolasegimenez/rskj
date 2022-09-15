@@ -6,14 +6,22 @@ import org.ethereum.core.Blockchain;
 import org.ethereum.datasource.HashMapDB;
 import org.ethereum.datasource.KeyValueDataSource;
 import org.ethereum.listener.CompositeEthereumListener;
+import org.ethereum.util.TestInjectorUtil;
 import org.ethereum.vm.DataWord;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Created by ajlopez on 29/09/2020.
  */
 public class BlocksBloomServiceTest {
+
+    @Before
+    public void setUp() {
+        TestInjectorUtil.initEmpty();
+    }
+
     @Test
     public void processFirstRange() {
         World world = new World();

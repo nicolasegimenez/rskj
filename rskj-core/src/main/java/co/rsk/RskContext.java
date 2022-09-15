@@ -262,6 +262,9 @@ public class RskContext implements NodeContext, NodeBootstrapper {
                 NodeCliOptions.class,
                 NodeCliFlags.class
         ).parse(args));
+
+        Injector.close(); // new RskContext = new injector
+        Injector.init(this);
     }
 
     private RskContext(CliArgs<NodeCliOptions, NodeCliFlags> cliArgs) {
@@ -1161,6 +1164,8 @@ public class RskContext implements NodeContext, NodeBootstrapper {
         }
 
         closed = true;
+
+        Injector.close();
 
         // as RskContext creates PeerExplorer and manages its lifecycle, dispose it here
         if (peerExplorer != null) {

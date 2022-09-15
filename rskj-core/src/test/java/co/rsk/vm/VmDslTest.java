@@ -25,18 +25,24 @@ import co.rsk.test.dsl.WorldDslProcessor;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionReceipt;
+import org.ethereum.util.TestInjectorUtil;
 import org.ethereum.vm.DataWord;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 
-import javax.xml.crypto.Data;
 import java.io.FileNotFoundException;
 
 /**
  * Created by ajlopez on 15/04/2020.
  */
 public class VmDslTest {
+
+    @Before
+    public void setUp() {
+        TestInjectorUtil.initEmpty();
+    }
+
     @Test
     public void invokeRecursiveContractsUsing400Levels() throws FileNotFoundException, DslProcessorException {
         System.gc();

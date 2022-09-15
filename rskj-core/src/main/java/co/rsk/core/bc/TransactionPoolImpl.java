@@ -18,6 +18,7 @@
 
 package co.rsk.core.bc;
 
+import co.rsk.Injector;
 import co.rsk.config.RskSystemProperties;
 import co.rsk.core.Coin;
 import co.rsk.core.TransactionExecutorFactory;
@@ -77,7 +78,7 @@ public class TransactionPoolImpl implements TransactionPool {
 
     private final TxPendingValidator validator;
 
-    private final TxQuotaChecker quotaChecker;
+    private final TxQuotaChecker quotaChecker = Injector.getService(TxQuotaChecker.class);
 
     private final GasPriceTracker gasPriceTracker;
 
@@ -92,7 +93,7 @@ public class TransactionPoolImpl implements TransactionPool {
         this.signatureCache = signatureCache;
         this.outdatedThreshold = outdatedThreshold;
         this.outdatedTimeout = outdatedTimeout;
-        this.quotaChecker = txQuotaChecker;
+        // this.quotaChecker = txQuotaChecker;
         this.gasPriceTracker = gasPriceTracker;
 
         this.validator = new TxPendingValidator(config.getNetworkConstants(), config.getActivationConfig(), config.getNumOfAccountSlots());
