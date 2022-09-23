@@ -870,7 +870,7 @@ public class RskContext implements NodeContext, NodeBootstrapper {
                     getBlockStore(),
                     getReceiptStore(),
                     getWeb3InformationRetriever(),
-                    getFlusher());
+                    getBlockChainFlusher());
         }
 
         return rskModule;
@@ -891,10 +891,6 @@ public class RskContext implements NodeContext, NodeBootstrapper {
         }
 
         return blockChainFlusher;
-    }
-
-    public Flusher getFlusher() {
-        return getBlockChainFlusher();
     }
 
     public synchronized NetworkStateExporter getNetworkStateExporter() {
