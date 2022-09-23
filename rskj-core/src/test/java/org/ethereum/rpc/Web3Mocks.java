@@ -18,6 +18,7 @@
 
 package org.ethereum.rpc;
 
+import co.rsk.Flusher;
 import co.rsk.config.RskSystemProperties;
 import co.rsk.core.bc.BlockExecutor;
 import co.rsk.db.RepositoryLocator;
@@ -83,5 +84,9 @@ public class Web3Mocks {
 
     public static BlockExecutor getMockBlockExecutor() {
         return mock(BlockExecutor.class);
+    }
+
+    public static Flusher getMockFlusher() {
+        return mock(Flusher.class);
     }
 }
