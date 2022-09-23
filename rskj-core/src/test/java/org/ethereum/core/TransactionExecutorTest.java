@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.LongAccumulator;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -93,7 +92,7 @@ class TransactionExecutorTest {
                 repository, blockStore, receiptStore, blockFactory,
                 programInvokeFactory, executionBlock, gasUsedInTheBlock, vmConfig,
                 true, precompiledContracts, deletedAccounts,
-                blockTxSignatureCache, new LongAccumulator(Long::sum, 0)
+                blockTxSignatureCache
         );
 
 
@@ -199,7 +198,7 @@ class TransactionExecutorTest {
                 repository, blockStore, receiptStore, blockFactory,
                 programInvokeFactory, executionBlock, gasUsedInTheBlock, vmConfig,
                 true, precompiledContracts, deletedAccounts,
-                blockTxSignatureCache, new LongAccumulator(Long::sum, 0)
+                blockTxSignatureCache
         );
 
         assertEquals(0, transaction.transactionCost(constants, activationConfig.forBlock(executionBlock.getNumber()), new BlockTxSignatureCache(new ReceivedTxSignatureCache())));
@@ -232,7 +231,7 @@ class TransactionExecutorTest {
                 repository, blockStore, receiptStore, blockFactory,
                 programInvokeFactory, executionBlock, gasUsedInTheBlock, vmConfig,
                 true, precompiledContracts, deletedAccounts,
-                blockTxSignatureCache, new LongAccumulator(Long::sum, 0)
+                blockTxSignatureCache
         );
 
         assertEquals(0, transaction.transactionCost(constants, activationConfig.forBlock(executionBlock.getNumber()), new BlockTxSignatureCache(new ReceivedTxSignatureCache())));
@@ -308,7 +307,7 @@ class TransactionExecutorTest {
                 repository, blockStore, receiptStore, blockFactory,
                 programInvokeFactory, executionBlock, gasUsedInTheBlock, vmConfig,
                 true, precompiledContracts, deletedAccounts,
-                blockTxSignatureCache, new LongAccumulator(Long::sum, 0)
+                blockTxSignatureCache
         );
 
         return txExecutor.executeTransaction();

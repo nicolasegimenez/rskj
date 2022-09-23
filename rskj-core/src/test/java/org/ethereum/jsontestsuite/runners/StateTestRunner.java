@@ -60,7 +60,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.LongAccumulator;
 
 import static org.ethereum.util.ByteUtil.byteArrayToLong;
 
@@ -108,7 +107,6 @@ public class StateTestRunner {
 
     protected ProgramResult executeTransaction(Transaction tx) {
         Repository track = repository.startTracking();
-        LongAccumulator remascFee = new LongAccumulator(Long::sum, 0);
 
         TransactionExecutorFactory transactionExecutorFactory = new TransactionExecutorFactory(
                 config,
@@ -119,7 +117,7 @@ public class StateTestRunner {
                 precompiledContracts,
                 new BlockTxSignatureCache(new ReceivedTxSignatureCache()));
         TransactionExecutor executor = transactionExecutorFactory
-                .newInstance(transaction, 0, new RskAddress(env.getCurrentCoinbase()), track, blockchain.getBestBlock(), 0, remascFee);
+                .newInstance(transaction, 0, new RskAddress(env.getCurrentCoinbase()), track, blockchain.getBestBlock(), 0);
 
         try{
             executor.executeTransaction();
@@ -128,8 +126,8 @@ public class StateTestRunner {
             System.exit(-1);
         }
 
-        if (remascFee.get() > 0) {
-            track.addBalance(PrecompiledContracts.REMASC_ADDR, Coin.valueOf(remascFee.get()));
+        if (config.isRemascEnabled() && executor.getPaidFees().compareTo(Coin.ZERO) > 0) {
+            track.addBalance(PrecompiledContracts.REMASC_ADDR, executor.getPaidFees());
         }
 
         track.commit();
