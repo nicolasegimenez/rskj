@@ -28,6 +28,7 @@ import org.ethereum.db.BlockStore;
 import org.ethereum.util.ByteUtil;
 import org.ethereum.vm.DataWord;
 import org.ethereum.vm.program.Program;
+import org.ethereum.vm.program.call.CallDepthGasLocker;
 import org.ethereum.vm.program.invoke.ProgramInvoke;
 import org.ethereum.vm.program.invoke.ProgramInvokeFactory;
 import org.ethereum.vm.program.invoke.ProgramInvokeImpl;
@@ -46,16 +47,16 @@ public class TestProgramInvokeFactory implements ProgramInvokeFactory {
 
 
     @Override
-    public ProgramInvoke createProgramInvoke(Transaction tx, int txindex, Block block, Repository repository, BlockStore blockStore) {
+    public ProgramInvoke createOriginal(Transaction tx, int txindex, Block block, Repository repository, BlockStore blockStore) {
         return generalInvoke(tx, txindex, repository, blockStore);
     }
 
     @Override
-    public ProgramInvoke createProgramInvoke(Program program, DataWord toAddress, DataWord callerAddress,
-                                             DataWord inValue, long inGas,
-                                             Coin balanceInt, byte[] dataIn,
-                                             Repository repository, BlockStore blockStore,
-                                             boolean isStaticCall, boolean byTestingSuite) {
+    public ProgramInvoke createNested(Program program, DataWord toAddress, DataWord callerAddress,
+                                      DataWord inValue, long inGas,
+                                      Coin balanceInt, byte[] dataIn,
+                                      Repository repository, BlockStore blockStore,
+                                      boolean isStaticCall, boolean byTestingSuite, CallDepthGasLocker callDepthGasLocker) {
         return null;
     }
 
@@ -111,7 +112,7 @@ public class TestProgramInvokeFactory implements ProgramInvokeFactory {
 
         return new ProgramInvokeImpl(addr.getBytes(), origin.getBytes(), caller.getBytes(), balance.getBytes(),
                 gasPrice.getBytes(), gas, callValue.getBytes(), data, lastHash, coinbase,
-                timestamp, number, txindex, difficulty, gaslimit, repository, blockStore);
+                timestamp, number, txindex, difficulty, gaslimit, repository, blockStore, null);
     }
 
 }

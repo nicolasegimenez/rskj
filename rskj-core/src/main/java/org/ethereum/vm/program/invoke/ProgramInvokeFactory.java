@@ -25,6 +25,7 @@ import org.ethereum.core.Repository;
 import org.ethereum.core.Transaction;
 import org.ethereum.db.BlockStore;
 import org.ethereum.vm.DataWord;
+import org.ethereum.vm.program.call.CallDepthGasLocker;
 import org.ethereum.vm.program.Program;
 
 /**
@@ -33,12 +34,13 @@ import org.ethereum.vm.program.Program;
  */
 public interface ProgramInvokeFactory {
 
-    ProgramInvoke createProgramInvoke(Transaction tx, int txindex, Block block,
-                                      Repository repository, BlockStore blockStore);
+    ProgramInvoke createOriginal(Transaction tx, int txindex, Block block,
+                                 Repository repository, BlockStore blockStore);
 
-    ProgramInvoke createProgramInvoke(Program program, DataWord toAddress, DataWord callerAddress,
-                                      DataWord inValue, long inGas,
-                                      Coin balanceInt, byte[] dataIn,
-                                      Repository repository, BlockStore blockStore,
-                                      boolean isStaticCall, boolean byTestingSuite);
+    ProgramInvoke createNested(Program program, DataWord toAddress, DataWord callerAddress,
+                               DataWord inValue, long inGas,
+                               Coin balanceInt, byte[] dataIn,
+                               Repository repository, BlockStore blockStore,
+                               boolean isStaticCall, boolean byTestingSuite,
+                               CallDepthGasLocker callDepthGasLocker);
 }
