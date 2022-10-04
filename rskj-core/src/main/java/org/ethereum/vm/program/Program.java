@@ -45,7 +45,6 @@ import org.ethereum.vm.*;
 import org.ethereum.vm.MessageCall.MsgType;
 import org.ethereum.vm.PrecompiledContracts.PrecompiledContract;
 import org.ethereum.vm.exception.VMException;
-import org.ethereum.vm.program.call.CallSubProgram;
 import org.ethereum.vm.program.invoke.*;
 import org.ethereum.vm.program.listener.CompositeProgramListener;
 import org.ethereum.vm.program.listener.ProgramListenerAware;
@@ -174,27 +173,19 @@ public class Program {
      * since RSKIP150.
      */
     private int getMaxDepth() {
-        int maxCap = 1024;
-
-        // TODO:I https://iov-labs.slack.com/archives/D0310115BGQ/p1664269595420179
         if (activations.isActive(ConsensusRule.RSKIP209)) {
-            return maxCap;
+            return Integer.MAX_VALUE; // no limit after this RSKIP
         }
 
         if (activations.isActive(ConsensusRule.RSKIP150)) {
             return 400;
         }
 
-        return maxCap;
+        return 1024;
     }
 
     public int getCallDeep() {
         return invoke.getCallDeep();
-    }
-
-    public long lockGasForCallDepth(long requiredGas, long availableGas) {
-        CallSubProgram callProg = new CallSubProgram(this, requiredGas, availableGas);
-        return invoke.getCallDepthGasLocker().lock(callProg);
     }
 
     private InternalTransaction addInternalTx(byte[] nonce, DataWord gasLimit, RskAddress senderAddress, RskAddress receiveAddress,
@@ -330,10 +321,6 @@ public class Program {
     }
 
     public void verifyStackOverflow(int argsReqs, int returnReqs) {
-        if (this.getActivations().isActive(ConsensusRule.RSKIP209)) {
-            return; // nothing to do after this RSKIP
-        }
-
         if ((stack.size() - argsReqs + returnReqs) > MAX_STACKSIZE) {
             throw new StackTooLargeException("Expected: overflow " + MAX_STACKSIZE + " elements stack limit");
         }
@@ -610,9 +597,9 @@ public class Program {
 
 
         InternalTransaction internalTx = addInternalTx(nonce, getGasLimit(), senderAddress, RskAddress.nullAddress(), endowment, programCode, "create");
-        ProgramInvoke programInvoke = programInvokeFactory.createNested(
+        ProgramInvoke programInvoke = programInvokeFactory.createProgramInvoke(
                 this, DataWord.valueOf(contractAddress.getBytes()), getOwnerAddress(), value, gasLimit,
-                newBalance, null, track, this.invoke.getBlockStore(), false, byTestingSuite(), invoke.getCallDepthGasLocker());
+                newBalance, null, track, this.invoke.getBlockStore(), false, byTestingSuite(), invoke.getLockedGasByDepth());
 
         returnDataBuffer = null; // reset return buffer right before the call
 
@@ -834,13 +821,13 @@ public class Program {
         returnDataBuffer = null; // reset return buffer right before the call
         ProgramResult childResult;
 
-        ProgramInvoke programInvoke = programInvokeFactory.createNested(
+        ProgramInvoke programInvoke = programInvokeFactory.createProgramInvoke(
                 this, DataWord.valueOf(contextAddress.getBytes()),
                 msg.getType() == MsgType.DELEGATECALL ? getCallerAddress() : getOwnerAddress(),
                 msg.getType() == MsgType.DELEGATECALL ? getCallValue() : msg.getEndowment(),
                 limitToMaxLong(msg.getGas()), contextBalance, data, track, this.invoke.getBlockStore(),
                 msg.getType() == MsgType.STATICCALL || isStaticCall(), byTestingSuite(),
-                invoke.getCallDepthGasLocker());
+                invoke.getLockedGasByDepth());
 
         VM vm = new VM(config, precompiledContracts);
         Program program = new Program(config, precompiledContracts, blockFactory, activations, programCode, programInvoke, internalTx, deletedAccountsInBlock);
@@ -1439,6 +1426,10 @@ public class Program {
                 executePrecompiled(contract, msg, requiredGas, track, data);
             }
         }
+    }
+
+    public Map<Integer, Long> getLockedGasByDepth() {
+        return invoke.getLockedGasByDepth();
     }
 
     /**

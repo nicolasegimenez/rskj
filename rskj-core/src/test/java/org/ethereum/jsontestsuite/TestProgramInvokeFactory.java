@@ -28,10 +28,11 @@ import org.ethereum.db.BlockStore;
 import org.ethereum.util.ByteUtil;
 import org.ethereum.vm.DataWord;
 import org.ethereum.vm.program.Program;
-import org.ethereum.vm.program.call.CallDepthGasLocker;
 import org.ethereum.vm.program.invoke.ProgramInvoke;
 import org.ethereum.vm.program.invoke.ProgramInvokeFactory;
 import org.ethereum.vm.program.invoke.ProgramInvokeImpl;
+
+import java.util.Map;
 
 /**
  * @author Roman Mandeleil
@@ -47,16 +48,17 @@ public class TestProgramInvokeFactory implements ProgramInvokeFactory {
 
 
     @Override
-    public ProgramInvoke createOriginal(Transaction tx, int txindex, Block block, Repository repository, BlockStore blockStore) {
+    public ProgramInvoke createProgramInvoke(Transaction tx, int txindex, Block block, Repository repository, BlockStore blockStore) {
         return generalInvoke(tx, txindex, repository, blockStore);
     }
 
     @Override
-    public ProgramInvoke createNested(Program program, DataWord toAddress, DataWord callerAddress,
-                                      DataWord inValue, long inGas,
-                                      Coin balanceInt, byte[] dataIn,
-                                      Repository repository, BlockStore blockStore,
-                                      boolean isStaticCall, boolean byTestingSuite, CallDepthGasLocker callDepthGasLocker) {
+    public ProgramInvoke createProgramInvoke(Program program, DataWord toAddress, DataWord callerAddress,
+                                             DataWord inValue, long inGas,
+                                             Coin balanceInt, byte[] dataIn,
+                                             Repository repository, BlockStore blockStore,
+                                             boolean isStaticCall, boolean byTestingSuite,
+                                             Map<Integer, Long> lockedGasByDepth) {
         return null;
     }
 
