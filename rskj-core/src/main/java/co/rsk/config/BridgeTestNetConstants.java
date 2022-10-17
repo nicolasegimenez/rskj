@@ -48,8 +48,8 @@ public class BridgeTestNetConstants extends BridgeConstants {
         List<FederationMember> federationMembers = FederationMember.getFederationMembersFromKeys(genesisFederationPublicKeys);
 
         // Currently set to:
-        // 2022-10-13T05:00:00.000Z
-        Instant genesisFederationAddressCreatedAt = Instant.ofEpochMilli(1665637200);
+        // 2022-08-29T00:00:00.000Z
+        Instant genesisFederationAddressCreatedAt = Instant.ofEpochMilli(1661731200);
 
         genesisFederation = new Federation(
                 federationMembers,
