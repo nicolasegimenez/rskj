@@ -948,6 +948,14 @@ public class BridgeStorageProvider {
         this.pegoutCreationEntry = pegoutCreationEntry;
     }
 
+    public void removePegoutCreationEntry(Sha256Hash btcTxHash){
+        if (!activations.isActive(RSKIP298)){
+            return;
+        }
+
+        this.pegoutCreationEntry = new PegoutCreationEntry(btcTxHash, null);
+    }
+
     public Optional<Keccak256> getPegoutCreationRskTxHashByBtcTxHash(Sha256Hash btcTxHash){
         if(!activations.isActive(RSKIP298) || btcTxHash == null){
             return Optional.empty();

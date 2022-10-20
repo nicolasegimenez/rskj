@@ -1433,8 +1433,9 @@ public class BridgeSupport {
         if (BridgeUtils.hasEnoughSignatures(btcContext, btcTx)) {
             logger.info("Tx fully signed {}. Hex: {}", btcTx, Hex.toHexString(btcTx.bitcoinSerialize()));
             provider.getRskTxsWaitingForSignatures().remove(new Keccak256(rskTxHash));
-
             eventLogger.logReleaseBtc(btcTx, rskTxHash);
+            BridgeUtils.removeSignaturesFromTransaction(btcTx, federation);
+            provider.removePegoutCreationEntry(btcTx.getHash());
         } else if (logger.isDebugEnabled()) {
             int missingSignatures = BridgeUtils.countMissingSignatures(btcContext, btcTx);
             int neededSignatures = federation.getNumberOfSignaturesRequired();
