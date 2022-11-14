@@ -586,9 +586,8 @@ class TransactionModuleTest {
         BlockExecutor blockExecutor = new BlockExecutor(
                 config.getActivationConfig(),
                 repositoryLocator,
-//                stateRootHandler,
-                this.transactionExecutorFactory
-        );
+                this.transactionExecutorFactory,
+                config.isRemascEnabled());
 
         MinerServer minerServer = new MinerServerImpl(
                 config,

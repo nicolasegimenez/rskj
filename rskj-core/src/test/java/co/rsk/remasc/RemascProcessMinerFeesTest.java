@@ -1024,7 +1024,7 @@ class RemascProcessMinerFeesTest {
                         new ProgramInvokeFactoryImpl(),
                         new PrecompiledContracts(config, bridgeSupportFactory, signatureCache),
                         new BlockTxSignatureCache(new ReceivedTxSignatureCache())
-                )
-        );
+                ),
+                config.isRemascEnabled());
     }
 }

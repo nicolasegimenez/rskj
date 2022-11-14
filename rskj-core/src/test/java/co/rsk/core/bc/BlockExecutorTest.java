@@ -1414,7 +1414,8 @@ public class BlockExecutorTest {
                         new ProgramInvokeFactoryImpl(),
                         new PrecompiledContracts(cfg, bridgeSupportFactory, signatureCache),
                         signatureCache
-                )
+                ),
+                cfg.isRemascEnabled()
         );
     }
 
