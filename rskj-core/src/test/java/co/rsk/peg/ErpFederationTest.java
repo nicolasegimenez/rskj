@@ -674,6 +674,12 @@ public class ErpFederationTest {
         boolean isRskip293Active,
         boolean signWithEmergencyMultisig) {
 
+        // Below code can be used to create a transaction spending from the emergency multisig in testnet or mainnet
+        final String FUND_TX_HASH;
+        final Coin TX_FEE = Coin.valueOf(10_000L);
+        final int OUTPUT_INDEX = 0; // Remember to change this value accordingly in case of using an existing raw tx
+        final Address DESTINATION_ADDRESS = PegTestUtils.createRandomP2PKHBtcAddress(networkParameters);
+
         // Created with GenNodeKeyId using seed 'fed1'
         byte[] publicKeyBytes = Hex.decode("043267e382e076cbaa199d49ea7362535f95b135de181caf66b391f541bf39ab0e75b8577faac2183782cb0d76820cf9f356831d216e99d886f8a6bc47fe696939");
         BtcECKey btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
@@ -723,19 +729,21 @@ public class ErpFederationTest {
             activations
         );
 
-        // Below code can be used to create a transaction spending from the emergency multisig in testnet or mainnet
-//        String RAW_FUND_TX = "";
-//        BtcTransaction pegInTx = new BtcTransaction(networkParameters, Hex.decode(RAW_FUND_TX));
-        int outputIndex = 0; // Remember to change this value accordingly in case of using an existing raw tx
-        BtcTransaction pegInTx = new BtcTransaction(networkParameters);
-        pegInTx.addOutput(Coin.valueOf(990_000), erpFed.getAddress());
+        if (FUND_TX_HASH) {
+            BtcTransaction pegInTx = new BtcTransaction(networkParameters);
+            pegInTx.addOutput(Coin.valueOf(990_000), erpFed.getAddress());
 
-        Address destinationAddress = PegTestUtils.createRandomP2PKHBtcAddress(networkParameters);
+            FUND_TX_HASH = pegInTx.getHashAsString();
+        }
+
         BtcTransaction pegOutTx = new BtcTransaction(networkParameters);
-        pegOutTx.addInput(pegInTx.getOutput(outputIndex));
-        pegOutTx.addOutput(Coin.valueOf(900_000), destinationAddress);
+        pegOutTx.addInput(FUND_TX_HASH, OUTPUT_INDEX, new Script(new byte[]{}));
+        pegOutTx.addOutput(pegInTx.getOutput(OUTPUT_INDEX).getValue().minus(TX_FEE), DESTINATION_ADDRESS);
         pegOutTx.setVersion(2);
-        pegOutTx.getInput(0).setSequenceNumber(activationDelay);
+
+        if (signWithEmergencyMultisig) {
+            pegOutTx.getInput(0).setSequenceNumber(activationDelay);
+        }
 
         // Create signatures
         Sha256Hash sigHash = pegOutTx.hashForSignature(
@@ -759,17 +767,29 @@ public class ErpFederationTest {
         }
 
         // Try different signature permutations
-        Script inputScript = createInputScript(erpFed.getRedeemScript(), signature1, signature2, signWithEmergencyMultisig);
+        Script inputScript = createInputScript(
+            erpFed.getRedeemScript(),
+            Arrays.asList(signature1, signature2),
+            signWithEmergencyMultisig
+        );
         pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(outputIndex).getScriptPubKey());
+        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
 
-        inputScript = createInputScript(erpFed.getRedeemScript(), signature1, signature3, signWithEmergencyMultisig);
+        inputScript = createInputScript(
+            erpFed.getRedeemScript(),
+            Arrays.asList(signature1, signature3),
+            signWithEmergencyMultisig
+        );
         pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(outputIndex).getScriptPubKey());
+        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
 
-        inputScript = createInputScript(erpFed.getRedeemScript(), signature2, signature3, signWithEmergencyMultisig);
+        inputScript = createInputScript(
+            erpFed.getRedeemScript(),
+            Arrays.asList(signature2, signature3),
+            signWithEmergencyMultisig
+        );
         pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(outputIndex).getScriptPubKey());
+        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
 
         // Uncomment to print the raw tx in console and broadcast https://blockstream.info/testnet/tx/push
 //        System.out.println(Hex.toHexString(pegOutTx.bitcoinSerialize()));
@@ -799,30 +819,24 @@ public class ErpFederationTest {
 
     private Script createInputScript(
         Script fedRedeemScript,
-        BtcECKey.ECDSASignature signature1,
-        BtcECKey.ECDSASignature signature2,
+        List<BtcECKey.ECDSASignature> signatures,
         boolean signWithTheEmergencyMultisig) {
 
-        TransactionSignature txSignature1 = new TransactionSignature(
-            signature1,
+        List<TransactionSignature> txSignatures = signatures.stream().map(sig -> new TransactionSignature(
+            sig,
             BtcTransaction.SigHash.ALL,
             false
-        );
-        byte[] txSignature1Encoded = txSignature1.encodeToBitcoin();
-
-        TransactionSignature txSignature2 = new TransactionSignature(
-            signature2,
-            BtcTransaction.SigHash.ALL,
-            false
-        );
-        byte[] txSignature2Encoded = txSignature2.encodeToBitcoin();
+        )).collect(Collectors.toList());
 
         int flowOpCode = signWithTheEmergencyMultisig ? 1 : 0;
         ScriptBuilder scriptBuilder = new ScriptBuilder();
+
+        scriptBuilder = scriptBuilder.number(0);
+        for (TransactionSignature txSig : txSignatures) {
+            scriptBuilder = scriptBuilder.data(txSig.encodeToBitcoin());
+        }
+
         return scriptBuilder
-            .number(0)
-            .data(txSignature1Encoded)
-            .data(txSignature2Encoded)
             .number(flowOpCode)
             .data(fedRedeemScript.getProgram())
             .build();
