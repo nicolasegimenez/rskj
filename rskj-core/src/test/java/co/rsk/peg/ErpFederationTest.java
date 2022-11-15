@@ -675,31 +675,76 @@ public class ErpFederationTest {
         boolean signWithEmergencyMultisig) {
 
         // Below code can be used to create a transaction spending from the emergency multisig in testnet or mainnet
-        final String FUND_TX_HASH;
-        final Coin TX_FEE = Coin.valueOf(10_000L);
-        final int OUTPUT_INDEX = 0; // Remember to change this value accordingly in case of using an existing raw tx
-        final Address DESTINATION_ADDRESS = PegTestUtils.createRandomP2PKHBtcAddress(networkParameters);
+        String FUND_TX_HASH = "678a562c8ed326e7e422248abeacb150597f6f3dd4470ae7d555158f8c4c50e4";
+        final Coin FUND_TX_VALUE = Coin.valueOf(10_000L);
+        final Coin TX_FEE = Coin.valueOf(1_000L);
+        final int OUTPUT_INDEX = 1; // Remember to change this value accordingly in case of using an existing raw tx
+        final Address DESTINATION_ADDRESS = Address.fromBase58(networkParameters, "mgagqa2QuxFfLQXLRyWe5TorLMbP9Maiud");
 
-        // Created with GenNodeKeyId using seed 'fed1'
-        byte[] publicKeyBytes = Hex.decode("043267e382e076cbaa199d49ea7362535f95b135de181caf66b391f541bf39ab0e75b8577faac2183782cb0d76820cf9f356831d216e99d886f8a6bc47fe696939");
-        BtcECKey btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
-        ECKey rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        byte[] publicKeyBytes;
+        BtcECKey btcKey;
+        ECKey rskKey;
+
+        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
+        publicKeyBytes = Hex.decode("020e67a1daba745be62206fa944bacc02a9b87c017b0a0d672ddb349fe838450dd");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
         FederationMember fed1 = new FederationMember(btcKey, rskKey, rskKey);
-        BtcECKey fed1PrivKey = BtcECKey.fromPrivate(Hex.decode("529822842595a3a6b3b3e51e9cffa0db66452599f7beec542382a02b1e42be4b"));
+        BtcECKey fed1PrivKey = BtcECKey.fromPrivate(Hex.decode("7147b50a8a30710a6ce66d144a9e30f9092e14ab0199b0180421a5146d635983"));
 
-        // Created with GenNodeKeyId using seed 'fed3', used for fed2 to keep keys sorted
-        publicKeyBytes = Hex.decode("0443e106d90183e2eef7d5cb7538a634439bf1301d731787c6736922ff19e750ed39e74a76731fed620aeedbcd77e4de403fc4148efd3b5dbfc6cef550aa63c377");
+        publicKeyBytes = Hex.decode("021549fff7ab02f06c8ee6375b428abeef45ab553a5837f42db6f2e5c5a19ca495");
         btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
         rskKey = ECKey.fromPublicOnly(publicKeyBytes);
         FederationMember fed2 = new FederationMember(btcKey, rskKey, rskKey);
-        BtcECKey fed2PrivKey = BtcECKey.fromPrivate(Hex.decode("b2889610e66cd3f7de37c81c20c786b576349b80b3f844f8409e3a29d95c0c7c"));
+        BtcECKey fed2PrivKey = BtcECKey.fromPrivate(Hex.decode("43b3465f4e11beeaffb66552f1cc1be2ac41feded77ee08c147646b60a177442"));
 
-        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
-        publicKeyBytes = Hex.decode("04bd5b51b1c5d799da190285c8078a2712b8e5dc6f73c799751e6256bb89a4bd04c6444b00289fc76ee853fcfa52b3083d66c42e84f8640f53a4cdf575e4d4a399");
+        publicKeyBytes = Hex.decode("02196385ffd175d0d129aa25574a2449d1deec93c88dfc3ebbcdc01db06d4dd00d");
         btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
         rskKey = ECKey.fromPublicOnly(publicKeyBytes);
         FederationMember fed3 = new FederationMember(btcKey, rskKey, rskKey);
-        BtcECKey fed3PrivKey = BtcECKey.fromPrivate(Hex.decode("fa013890aa14dd269a0ca16003cabde1688021358b662d17b1e8c555f5cccc6e"));
+        BtcECKey fed3PrivKey = BtcECKey.fromPrivate(Hex.decode("929dc7eee8ef3f66c6c756bcd0eda3e1319539d0c51f9d61f694fa347b936591"));
+
+        // Created with GenNodeKeyId using seed 'fed3', used for fed2 to keep keys sorted
+        publicKeyBytes = Hex.decode("0243a0ab0169f577de86ec47ad4d2679ab1d41316ada2f97e0b8d2bd3e17f93d04");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed4 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed4PrivKey = BtcECKey.fromPrivate(Hex.decode("d337775d4e8dc89de838f504bdeccb91754f09e696a5723ed0ef245d78ae5acf"));
+
+        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
+        publicKeyBytes = Hex.decode("02910dc283b2d30e055d44f9b1bf4bb8ae6fb6da4b99770b2a805388e7d4561f2e");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed5 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed5PrivKey = BtcECKey.fromPrivate(Hex.decode("7ff9baa065dad4b43ec9fdeeef2072f4d0e73c38deffb66665e8a25f97f981b8"));
+
+        // Created with GenNodeKeyId using seed 'fed1'
+        publicKeyBytes = Hex.decode("02e81d94dc61728d5eb53133b39e04ca72fa68b8da71fd8c15b0ef2c20e39b08c6");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed6 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed6PrivKey = BtcECKey.fromPrivate(Hex.decode("b264a70af886d184785aa0782ab84bf7ad582ce506915099023437616dbdba53"));
+
+        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
+        publicKeyBytes = Hex.decode("03ddec21ecc90d3611cdef846a970e1fc7a14c132013f3bfcc4368f2e4be22329d");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed7 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed7PrivKey = BtcECKey.fromPrivate(Hex.decode("fa013890aa14dd269a0ca16003cabde1688021358b662d17b1e8c555f5cccc6e"));
+
+        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
+        publicKeyBytes = Hex.decode("03ba98e552f5b5c80b7e1851c78fdda36f86661d38237915aede5a1427c315140c");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed8 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed8PrivKey = BtcECKey.fromPrivate(Hex.decode("fa013890aa14dd269a0ca16003cabde1688021358b662d17b1e8c555f5cccc6e"));
+
+        // Created with GenNodeKeyId using seed 'fed2', used for fed3 to keep keys sorted
+        publicKeyBytes = Hex.decode("0344249c412ffdb5f42131527040d5879803a44b4968eea9a5244b4d044945829c");
+        btcKey = BtcECKey.fromPublicOnly(publicKeyBytes);
+        rskKey = ECKey.fromPublicOnly(publicKeyBytes);
+        FederationMember fed9 = new FederationMember(btcKey, rskKey, rskKey);
+        BtcECKey fed9PrivKey = BtcECKey.fromPrivate(Hex.decode("fa013890aa14dd269a0ca16003cabde1688021358b662d17b1e8c555f5cccc6e"));
 
         // Created with GenNodeKeyId using seed 'erp1'
         publicKeyBytes = Hex.decode("048f5a88b08d75765b36951254e68060759de5be7e559972c37c67fc8cedafeb2643a4a8a618125530e275fe310c72dbdd55fa662cdcf8e134012f8a8d4b7e8400");
@@ -716,29 +761,34 @@ public class ErpFederationTest {
         BtcECKey erp3Key = BtcECKey.fromPublicOnly(publicKeyBytes);
         BtcECKey erp3PrivKey = BtcECKey.fromPrivate(Hex.decode("57e8d2cd51c3b076ca96a1043c8c6d32c6c18447e411a6279cda29d70650977b"));
 
+        publicKeyBytes = Hex.decode("04196385ffd175d0d129aa25574a2449d1deec93c88dfc3ebbcdc01db06d4dd00d4bb9979937f0d9a83c43d1017d3f30fa89f0c6414e1f3bbda87ad3a52a8c4da2");
+        BtcECKey erp4Key = BtcECKey.fromPublicOnly(publicKeyBytes);
+        BtcECKey erp4PrivKey = BtcECKey.fromPrivate(Hex.decode("929dc7eee8ef3f66c6c756bcd0eda3e1319539d0c51f9d61f694fa347b936591"));
+
         ActivationConfig.ForBlock activations = mock(ActivationConfig.ForBlock.class);
         when(activations.isActive(ConsensusRule.RSKIP284)).thenReturn(true);
         when(activations.isActive(ConsensusRule.RSKIP293)).thenReturn(isRskip293Active);
         ErpFederation erpFed = new ErpFederation(
-            Arrays.asList(fed1, fed2, fed3),
+            Arrays.asList(fed1, fed2, fed3, fed4, fed5, fed6, fed7, fed8, fed9),
             ZonedDateTime.parse("2017-06-10T02:30:00Z").toInstant(),
             0L,
             networkParameters,
-            Arrays.asList(erp1Key, erp2Key, erp3Key),
+            Arrays.asList(erp4Key, erp1Key, erp2Key, erp3Key),
             activationDelay,
             activations
         );
+        System.out.println("Erp federation address: " + erpFed.getAddress()); // 2N5s85F4YsUyhDfBaj3n3mcC41M5ZGoyaeA
 
-        if (FUND_TX_HASH) {
+        if (FUND_TX_HASH.isEmpty()) {
             BtcTransaction pegInTx = new BtcTransaction(networkParameters);
-            pegInTx.addOutput(Coin.valueOf(990_000), erpFed.getAddress());
+            pegInTx.addOutput(FUND_TX_VALUE, erpFed.getAddress());
 
             FUND_TX_HASH = pegInTx.getHashAsString();
         }
 
         BtcTransaction pegOutTx = new BtcTransaction(networkParameters);
-        pegOutTx.addInput(FUND_TX_HASH, OUTPUT_INDEX, new Script(new byte[]{}));
-        pegOutTx.addOutput(pegInTx.getOutput(OUTPUT_INDEX).getValue().minus(TX_FEE), DESTINATION_ADDRESS);
+        pegOutTx.addInput(Sha256Hash.wrap(Hex.decode(FUND_TX_HASH)), OUTPUT_INDEX, new Script(new byte[]{}));
+        pegOutTx.addOutput(FUND_TX_VALUE.minus(TX_FEE), DESTINATION_ADDRESS);
         pegOutTx.setVersion(2);
 
         if (signWithEmergencyMultisig) {
@@ -756,43 +806,27 @@ public class ErpFederationTest {
         BtcECKey.ECDSASignature signature1;
         BtcECKey.ECDSASignature signature2;
         BtcECKey.ECDSASignature signature3;
-        if (signWithEmergencyMultisig) {
-            signature1 = erp1PrivKey.sign(sigHash);
-            signature2 = erp2PrivKey.sign(sigHash);
-            signature3 = erp3PrivKey.sign(sigHash);
-        } else {
+        BtcECKey.ECDSASignature signature4;
+        BtcECKey.ECDSASignature signature5;
+
             signature1 = fed1PrivKey.sign(sigHash);
             signature2 = fed2PrivKey.sign(sigHash);
             signature3 = fed3PrivKey.sign(sigHash);
-        }
+            signature4 = fed4PrivKey.sign(sigHash);
+            signature5 = fed5PrivKey.sign(sigHash);
+
 
         // Try different signature permutations
         Script inputScript = createInputScript(
             erpFed.getRedeemScript(),
-            Arrays.asList(signature1, signature2),
+            Arrays.asList(signature1, signature2, signature3, signature4, signature5),
             signWithEmergencyMultisig
         );
         pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
-
-        inputScript = createInputScript(
-            erpFed.getRedeemScript(),
-            Arrays.asList(signature1, signature3),
-            signWithEmergencyMultisig
-        );
-        pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
-
-        inputScript = createInputScript(
-            erpFed.getRedeemScript(),
-            Arrays.asList(signature2, signature3),
-            signWithEmergencyMultisig
-        );
-        pegOutTx.getInput(0).setScriptSig(inputScript);
-        inputScript.correctlySpends(pegOutTx,0, pegInTx.getOutput(OUTPUT_INDEX).getScriptPubKey());
+        inputScript.correctlySpends(pegOutTx,0, erpFed.getP2SHScript());
 
         // Uncomment to print the raw tx in console and broadcast https://blockstream.info/testnet/tx/push
-//        System.out.println(Hex.toHexString(pegOutTx.bitcoinSerialize()));
+        System.out.println(Hex.toHexString(pegOutTx.bitcoinSerialize()));
     }
 
     private void createErpFederation(BridgeConstants constants, boolean isRskip293Active) {
