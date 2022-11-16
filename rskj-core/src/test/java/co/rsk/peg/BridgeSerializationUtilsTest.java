@@ -1099,39 +1099,35 @@ public class BridgeSerializationUtilsTest {
         test_serializeSha256Hash(null, null);
     }
 
-    private void test_deserializeSha256Hash(byte[] serializedHashBytes, Sha256Hash expectedHash, boolean shouldDeserialize) {
-        Optional<Sha256Hash> result = BridgeSerializationUtils.deserializeSha256Hash(serializedHashBytes);
-        Assert.assertEquals(shouldDeserialize, result.isPresent());
-        if (shouldDeserialize){
-            Assert.assertEquals(expectedHash, result.get());
-        }
-
+    private void test_deserializeSha256Hash(byte[] serializedHashBytes, Sha256Hash expectedHash) {
+        Sha256Hash result = BridgeSerializationUtils.deserializeSha256Hash(serializedHashBytes);
+        Assert.assertEquals(expectedHash, result);
     }
 
     @Test
     public void deserializeSha256Hash() {
         byte[] serializedHashBytes = Hex.decode("a00200000000000000000000000000000000000000000000000000000000000000");
         Sha256Hash expectedHash = Sha256Hash.wrap("0200000000000000000000000000000000000000000000000000000000000000");
-        test_deserializeSha256Hash(serializedHashBytes, expectedHash, true);
+        test_deserializeSha256Hash(serializedHashBytes, expectedHash);
     }
 
     @Test
     public void deserializeSha256Hash_zeroHash() {
         byte[] serializedHashBytes = Hex.decode("a00000000000000000000000000000000000000000000000000000000000000000");
         Sha256Hash expectedHash = Sha256Hash.wrap("0000000000000000000000000000000000000000000000000000000000000000");
-        test_deserializeSha256Hash(serializedHashBytes, expectedHash, true);
+        test_deserializeSha256Hash(serializedHashBytes, expectedHash);
     }
 
     @Test
     public void deserializeSha256Hash_nullValue() {
-        test_deserializeSha256Hash(null, null, false);
+        test_deserializeSha256Hash(null, null);
     }
 
     @Test
     public void deserializeSha256Hash_ok() {
         byte[] serializedHashBytes = Hex.decode("a00150000000000000000000000000000000000000000000000000000000000000");
         Sha256Hash expectedHash = Sha256Hash.wrap("0150000000000000000000000000000000000000000000000000000000000000");
-        test_deserializeSha256Hash(serializedHashBytes, expectedHash, true);
+        test_deserializeSha256Hash(serializedHashBytes, expectedHash);
     }
 
     @Test
