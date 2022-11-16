@@ -1094,9 +1094,9 @@ public class BridgeSerializationUtilsTest {
         );
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void serializeSha256Hash_nullValue() {
-        test_serializeSha256Hash(null, new byte[]{});
+        test_serializeSha256Hash(null, null);
     }
 
     private void test_deserializeSha256Hash(byte[] serializedHashBytes, Sha256Hash expectedHash, boolean shouldDeserialize) {
