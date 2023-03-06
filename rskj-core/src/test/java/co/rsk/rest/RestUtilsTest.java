@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RestUtilsTest {
 
     @Test
-    void testCreateResponse_contentOnly_executesAsExpected() {
+    void testCreateResponse_contentOnly_executesAsExpected() throws NumberFormatException {
         // Given
         String content = "content.text";
 
@@ -52,7 +52,7 @@ class RestUtilsTest {
     }
 
     @Test
-    void testCreateResponse_contentAndStatus_executesAsExpected() {
+    void testCreateResponse_contentAndStatus_executesAsExpected() throws NumberFormatException {
         // Given
         String content = "content.text";
         HttpResponseStatus httpResponseStatus = HttpResponseStatus.NOT_ACCEPTABLE;
@@ -71,7 +71,7 @@ class RestUtilsTest {
     }
 
     @Test
-    void testCreateResponse_customParameters_executesAsExpected() {
+    void testCreateResponse_customParameters_executesAsExpected() throws NumberFormatException {
         // Given
         String content = "content.text";
         HttpResponseStatus httpResponseStatus = HttpResponseStatus.PAYMENT_REQUIRED;
