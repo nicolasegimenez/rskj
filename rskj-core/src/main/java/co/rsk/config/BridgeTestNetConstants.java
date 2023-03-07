@@ -56,7 +56,7 @@ public class BridgeTestNetConstants extends BridgeConstants {
 
         // Currently set to:
         // Currently set to: Monday, October 8, 2018 12:00:00 AM GMT-03:00
-        Instant genesisFederationAddressCreatedAt = Instant.ofEpochMilli(1677700426L);
+        Instant genesisFederationAddressCreatedAt = Instant.ofEpochMilli(1673049600L);
 
         genesisFederation = new Federation(
             federationMembers,
