@@ -25,6 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+//TODO review this tests as they are using external files
 class NodeRunnerSmokeTest {
     @Test
     void mainnetSmokeTest() {
