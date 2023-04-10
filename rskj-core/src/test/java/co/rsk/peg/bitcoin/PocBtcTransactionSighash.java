@@ -23,7 +23,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -37,87 +36,11 @@ class PocBtcTransactionSighash {
     private static final BridgeConstants bridgeConstantsRegtest = BridgeRegTestConstants.getInstance();
     private static final NetworkParameters btcRegTestParams = bridgeConstantsRegtest.getBtcParams();
 
-
-    private static Address addressOf(int privateKey) {
-        return BtcECKey.fromPrivate(BigInteger.valueOf(privateKey)).toAddress(btcRegTestParams);
-    }
-
-    private static Address randomAddress() {
-        return new BtcECKey().toAddress(btcRegTestParams);
-    }
-
-    private static BtcTransaction createTransaction(Address from, Address to, Coin value) {
-        BtcTransaction input = new BtcTransaction(btcRegTestParams);
-        input.addOutput(Coin.COIN, from);
-        BtcTransaction result = new BtcTransaction(btcRegTestParams);
-        result.addInput(input.getOutput(0));
-        //result.getInput(0).disconnect();
-        result.addOutput(value, to);
-        return result;
-    }
-
-    private Sha256Hash extractSighashFromSignedBtcTx(int inputIndex, BtcTransaction signedBtcTx) {
-        Script script;
-        if (signedBtcTx.getInput(inputIndex).getConnectedOutput().getScriptPubKey().getScriptType() == Script.ScriptType.P2PKH){
-            script = signedBtcTx.getInput(inputIndex).getConnectedOutput().getScriptPubKey();
-        } else {
-            script = extractScript(signedBtcTx.getInput(inputIndex));
-        }
-        return signedBtcTx.hashForSignature(inputIndex, script, BtcTransaction.SigHash.ALL, false);
-    }
-
-    private Script extractScript(TransactionInput txIn) {
-        Script inputScript = txIn.getScriptSig();
-        if (inputScript.getScriptType() == Script.ScriptType.P2PKH){
-            return inputScript;
-        }
-
-        List<ScriptChunk> chunks = inputScript.getChunks();
-        byte[] program = chunks.get(chunks.size() - 1).data;
-
-        return new Script(program);
-    }
-
-    private static Stream<Arguments> providePrivateKeysAndBtcTx() {
-        List<BtcECKey> privateKeys = new ArrayList<>();
-        BtcECKey btcECKey = new BtcECKey();
-        privateKeys.add(btcECKey);
-        Address address = btcECKey.toAddress(btcRegTestParams);
-        Script outputScript = ScriptBuilder.createOutputScript(address);
-
-        BtcTransaction btcTxWithThreeInputs = new BtcTransaction(btcRegTestParams);
-        addInputsAndOutputs(address, btcTxWithThreeInputs, 3, outputScript);
-        btcTxWithThreeInputs.addOutput(Coin.MILLICOIN, address);
-
-        BtcTransaction btcTxWithOneInput = new BtcTransaction(btcRegTestParams);
-        addInputsAndOutputs(address, btcTxWithThreeInputs, 1, outputScript);
-
-        Federation federation = bridgeConstantsRegtest.getGenesisFederation();
+    @Test
+    void test_sighash_is_unique_for_same_tx() throws Exception {
         List<BtcECKey> federatorPrivateKeys = BridgeRegTestConstants.REGTEST_FEDERATION_PRIVATE_KEYS;
-        List<BtcECKey> fedPrivateKeys = Arrays.asList(federatorPrivateKeys.get(0), federatorPrivateKeys.get(1));
-
-        BtcTransaction fedBtcTxWithFourInputs = new BtcTransaction(btcRegTestParams);
-        addInputsAndOutputs(federation.getAddress(), fedBtcTxWithFourInputs, 4, createBaseInputScriptThatSpendsFromTheFederation(federation));
-        fedBtcTxWithFourInputs.addOutput(Coin.MILLICOIN, federation.getAddress());
-
-        BtcTransaction fedBtcTxWithOneInput = new BtcTransaction(btcRegTestParams);
-        addInputsAndOutputs(federation.getAddress(), fedBtcTxWithFourInputs, 4, createBaseInputScriptThatSpendsFromTheFederation(federation));
-
-        return Stream.of(
-            Arguments.of(privateKeys, btcTxWithThreeInputs),
-            Arguments.of(privateKeys, btcTxWithOneInput),
-            Arguments.of(fedPrivateKeys, fedBtcTxWithFourInputs),
-            Arguments.of(fedPrivateKeys, fedBtcTxWithOneInput)
-        );
-    }
-
-    private static BtcTransaction addInputsAndOutputs(Address from, BtcTransaction btcTransaction, int numberOfInputs, Script scriptSignature) {
-        for (int i = 0; i < numberOfInputs; i++) {
-            BtcTransaction prevBtcTx = createTransaction(randomAddress(), from, Coin.COIN);
-            btcTransaction.addInput(prevBtcTx.getOutput(0)).setScriptSig(scriptSignature);
-            btcTransaction.addOutput(Coin.MILLICOIN, randomAddress());
-        }
-        return btcTransaction;
+        List<BtcECKey> keys = Arrays.asList(federatorPrivateKeys.get(0), federatorPrivateKeys.get(1));
+        addSignatureFromValidFederator(keys, 1, true, false, "FullySigned");
     }
 
     @ParameterizedTest
@@ -194,16 +117,6 @@ class PocBtcTransactionSighash {
         TransactionInput input = btcTransaction.getInput(i);
         Script inputScript = input.getScriptSig();
 
-        /*boolean alreadySignedByThisFederator = input.getScriptSig().getChunks() != null?
-            BridgeUtils.isInputSignedByThisFederator(
-                privateKey,
-                sighash,
-                input) : false;
-
-
-        if (alreadySignedByThisFederator)
-            throw new IllegalStateException("Already signed");*/
-
         if (inputScript.getScriptType() == Script.ScriptType.P2PKH){
             input.setScriptSig(ScriptBuilder.createInputScript(txSig, privateKey));
         } else {
@@ -229,12 +142,82 @@ class PocBtcTransactionSighash {
         return Pair.of(sighash, sig.encodeToDER());
     }
 
+    private static Address randomAddress() {
+        return new BtcECKey().toAddress(btcRegTestParams);
+    }
 
-    @Test
-    void test_sighash_is_unique_for_same_tx() throws Exception {
+    private static BtcTransaction createTransaction(Address from, Address to, Coin value) {
+        BtcTransaction input = new BtcTransaction(btcRegTestParams);
+        input.addOutput(Coin.COIN, from);
+        BtcTransaction result = new BtcTransaction(btcRegTestParams);
+        result.addInput(input.getOutput(0));
+        result.getInput(0).disconnect();
+        result.addOutput(value, to);
+        return result;
+    }
+
+    private Sha256Hash extractSighashFromSignedBtcTx(int inputIndex, BtcTransaction signedBtcTx) {
+        Script script;
+        if (signedBtcTx.getInput(inputIndex).getConnectedOutput().getScriptPubKey().getScriptType() == Script.ScriptType.P2PKH){
+            script = signedBtcTx.getInput(inputIndex).getConnectedOutput().getScriptPubKey();
+        } else {
+            script = extractScript(signedBtcTx.getInput(inputIndex));
+        }
+        return signedBtcTx.hashForSignature(inputIndex, script, BtcTransaction.SigHash.ALL, false);
+    }
+
+    private Script extractScript(TransactionInput txIn) {
+        Script inputScript = txIn.getScriptSig();
+        if (inputScript.getScriptType() == Script.ScriptType.P2PKH){
+            return inputScript;
+        }
+
+        List<ScriptChunk> chunks = inputScript.getChunks();
+        byte[] program = chunks.get(chunks.size() - 1).data;
+
+        return new Script(program);
+    }
+
+    private static Stream<Arguments> providePrivateKeysAndBtcTx() {
+        List<BtcECKey> privateKeys = new ArrayList<>();
+        BtcECKey btcECKey = new BtcECKey();
+        privateKeys.add(btcECKey);
+        Address address = btcECKey.toAddress(btcRegTestParams);
+        Script outputScript = ScriptBuilder.createOutputScript(address);
+
+        BtcTransaction btcTxWithThreeInputs = new BtcTransaction(btcRegTestParams);
+        addInputsAndOutputs(address, btcTxWithThreeInputs, 3, outputScript);
+        btcTxWithThreeInputs.addOutput(Coin.MILLICOIN, address);
+
+        BtcTransaction btcTxWithOneInput = new BtcTransaction(btcRegTestParams);
+        addInputsAndOutputs(address, btcTxWithThreeInputs, 1, outputScript);
+
+        Federation federation = bridgeConstantsRegtest.getGenesisFederation();
         List<BtcECKey> federatorPrivateKeys = BridgeRegTestConstants.REGTEST_FEDERATION_PRIVATE_KEYS;
-        List<BtcECKey> keys = Arrays.asList(federatorPrivateKeys.get(0), federatorPrivateKeys.get(1));
-        addSignatureFromValidFederator(keys, 1, true, false, "FullySigned");
+        List<BtcECKey> fedPrivateKeys = Arrays.asList(federatorPrivateKeys.get(0), federatorPrivateKeys.get(1));
+
+        BtcTransaction fedBtcTxWithFourInputs = new BtcTransaction(btcRegTestParams);
+        addInputsAndOutputs(federation.getAddress(), fedBtcTxWithFourInputs, 4, createBaseInputScriptThatSpendsFromTheFederation(federation));
+        fedBtcTxWithFourInputs.addOutput(Coin.MILLICOIN, federation.getAddress());
+
+        BtcTransaction fedBtcTxWithOneInput = new BtcTransaction(btcRegTestParams);
+        addInputsAndOutputs(federation.getAddress(), fedBtcTxWithFourInputs, 4, createBaseInputScriptThatSpendsFromTheFederation(federation));
+
+        return Stream.of(
+            Arguments.of(privateKeys, btcTxWithThreeInputs),
+            Arguments.of(privateKeys, btcTxWithOneInput),
+            Arguments.of(fedPrivateKeys, fedBtcTxWithFourInputs),
+            Arguments.of(fedPrivateKeys, fedBtcTxWithOneInput)
+        );
+    }
+
+    private static BtcTransaction addInputsAndOutputs(Address from, BtcTransaction btcTransaction, int numberOfInputs, Script scriptSignature) {
+        for (int i = 0; i < numberOfInputs; i++) {
+            BtcTransaction prevBtcTx = createTransaction(randomAddress(), from, Coin.COIN);
+            btcTransaction.addInput(prevBtcTx.getOutput(0)).setScriptSig(scriptSignature);
+            btcTransaction.addOutput(Coin.MILLICOIN, randomAddress());
+        }
+        return btcTransaction;
     }
 
     private boolean processSigning(BtcECKey federatorPublicKey, List<byte[]> signatures, BtcTransaction btcTx) {
@@ -245,9 +228,6 @@ class PocBtcTransactionSighash {
         List<TransactionSignature> txSigs = new ArrayList<>();
         for (int i = 0; i < numInputs; i++) {
             TransactionInput txIn = btcTx.getInput(i);
-            // 0a07dacee73070ed07a16d42e155bdf52cb778920fe8681bb66816ce0a59e49e:0
-            // [0, 0, 0, 76, 105, 82, 33, 2, -51, 83, -4, 83, -96, 127, 33, 22, 65, -90, 119, -46, 80, -10, -34, -103, -54, -10, 32, -24, -25, 112, 113, -24, 17, -94, -117, 59, -51, -33, 11, -31, 33, 3, 98, 99, 74, -75, 125, -82, -100, -77, 115, -91, -43, 54, -26, 106, -116, 79, 103, 70, -117, -68, -5, 6, 56, 9, -70, -74, 67, 7, 45, 120, -95, 36, 33, 3, -59, -108, 107, 63, -70, -32, 58, 101, 66, 55, -38, -122, 60, -98, -43, 52, -32, -121, -122, 87, 23, 91, 19, 43, +10 more]
-            // [0, 71, 48, 68, 2, 32, 11, 12, -125, 57, 45, 93, -125, -101, -116, -72, 68, -125, -81, 48, 54, 54, -65, 79, -51, 102, 33, 125, 125, 12, 22, 6, -26, -100, -68, 58, -34, -74, 2, 32, 49, -99, 35, 101, -27, 16, -18, -114, -113, 21, 115, 113, -11, 66, 58, -67, -107, 8, -84, 115, -67, 72, 73, -19, -1, -104, 111, 20, -71, -87, 42, 82, 1, 0, 76, 105, 82, 33, 2, -51, 83, -4, 83, -96, 127, 33, 22, 65, -90, 119, -46, 80, -10, -34, -103, -54, -10, 32, -24, -25, +81 more]
             Script redeemScript = extractScript(txIn);
             sighashes.add(btcTx.hashForSignature(i, redeemScript, BtcTransaction.SigHash.ALL, false));
         }
@@ -263,10 +243,6 @@ class PocBtcTransactionSighash {
 
             Sha256Hash sighash = sighashes.get(i);
 
-            // 9725d09b3c3c087a8fcf6010c32daa9b3258a34a19500108137e6f7f946b33d2
-            // 9725d09b3c3c087a8fcf6010c32daa9b3258a34a19500108137e6f7f946b33d2
-            // [-105, 37, -48, -101, 60, 60, 8, 122, -113, -49, 96, 16, -61, 45, -86, -101, 50, 88, -93, 74, 25, 80, 1, 8, 19, 126, 111, 127, -108, 107, 51, -46]
-            // [-105, 37, -48, -101, 60, 60, 8, 122, -113, -49, 96, 16, -61, 45, -86, -101, 50, 88, -93, 74, 25, 80, 1, 8, 19, 126, 111, 127, -108, 107, 51, -46]
             if (!federatorPublicKey.verify(sighash, sig)) {
                 throw new IllegalStateException("Verification failed");
             }
@@ -350,6 +326,7 @@ class PocBtcTransactionSighash {
         }
 
         processSigning(findPublicKeySignedBy(federation.getBtcPublicKeys(), privateKeysToSignWith.get(0)), derEncodedSigs, t);
+
         if (privateKeysToSignWith.size() > 1) {
             BtcECKey.ECDSASignature sig2 = privateKeysToSignWith.get(1).sign(sighash);
             byte[] derEncodedSig2 = sig2.encodeToDER();
@@ -360,6 +337,10 @@ class PocBtcTransactionSighash {
             processSigning(findPublicKeySignedBy(federation.getBtcPublicKeys(), privateKeysToSignWith.get(1)), derEncodedSigs2, t);
         }
 
+
+        Sha256Hash extractSighashFromSignedBtcTx = extractSighashFromSignedBtcTx(0, t);
+
+        Assertions.assertEquals(extractSighashFromSignedBtcTx, sighash);
 
     }
 
