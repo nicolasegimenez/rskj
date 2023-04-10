@@ -1,5 +1,6 @@
 package co.rsk.peg.bitcoin;
 
+import co.rsk.bitcoinj.core.Address;
 import co.rsk.bitcoinj.core.BtcECKey;
 import co.rsk.bitcoinj.core.BtcTransaction;
 import co.rsk.bitcoinj.core.Coin;
@@ -15,24 +16,76 @@ import co.rsk.config.BridgeConstants;
 import co.rsk.config.BridgeRegTestConstants;
 import co.rsk.peg.BridgeUtils;
 import co.rsk.peg.Federation;
-import co.rsk.peg.utils.BridgeEventLogger;
-import co.rsk.peg.utils.BrigeEventLoggerLegacyImpl;
-import org.ethereum.config.blockchain.upgrades.ActivationConfig;
-import org.ethereum.core.ReceivedTxSignatureCache;
-import org.ethereum.core.SignatureCache;
-import org.ethereum.vm.LogInfo;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static co.rsk.peg.PegTestUtils.createBaseInputScriptThatSpendsFromTheFederation;
-import static org.mockito.Mockito.mock;
 
 class PocBtcTransactionSighash {
     private final BridgeConstants bridgeConstantsRegtest = BridgeRegTestConstants.getInstance();
     private final NetworkParameters btcRegTestParams = bridgeConstantsRegtest.getBtcParams();
+
+
+    private Address addressOf(int privateKey) {
+        return BtcECKey.fromPrivate(BigInteger.valueOf(privateKey)).toAddress(btcRegTestParams);
+    }
+
+    private Address randomAddress() {
+        return new BtcECKey().toAddress(btcRegTestParams);
+    }
+
+    private BtcTransaction createTransaction(Address from, Address to, Coin value) {
+        BtcTransaction input = new BtcTransaction(btcRegTestParams);
+        input.addOutput(Coin.COIN, from);
+        BtcTransaction result = new BtcTransaction(btcRegTestParams);
+        result.addInput(input.getOutput(0));
+        //result.getInput(0).disconnect();
+        result.addOutput(value, to);
+        return result;
+    }
+
+    private Sha256Hash extractSighashFromSignedBtcTx(BtcTransaction signedBtcTx) {
+        Script scriptPubKey = signedBtcTx.getInput(0).getConnectedOutput().getScriptPubKey();
+        return signedBtcTx.hashForSignature(0, scriptPubKey, BtcTransaction.SigHash.ALL, false);
+    }
+
+
+
+    @Test
+    void test_sighash_is_unique() throws Exception {
+        BtcECKey btcECKey = new BtcECKey();
+        BtcTransaction prevBtcTx = createTransaction(randomAddress(), btcECKey.toAddress(btcRegTestParams), Coin.MILLICOIN.multiply(2));
+
+        BtcTransaction btcTransactionToSign = new BtcTransaction(btcRegTestParams);
+        Script outputScript = ScriptBuilder.createOutputScript(btcECKey.toAddress(btcRegTestParams));
+        btcTransactionToSign.addInput(prevBtcTx.getOutput(0));
+        btcTransactionToSign.addOutput(Coin.MILLICOIN, randomAddress());
+
+        Sha256Hash sighash = btcTransactionToSign.hashForSignature(0, outputScript, BtcTransaction.SigHash.ALL, false);
+        BtcECKey.ECDSASignature sig = btcECKey.sign(sighash);
+        TransactionSignature txSig = new TransactionSignature(sig, BtcTransaction.SigHash.ALL, false);
+        if (!txSig.isCanonical()) {
+            throw new IllegalStateException("It is not canonical");
+        }
+
+        if (!btcECKey.verify(sighash, sig)) {
+            throw new IllegalStateException("Verification failed");
+        }
+
+        TransactionInput input = btcTransactionToSign.getInput(0);
+        Script inputScript = input.getScriptSig();
+        input.setScriptSig(ScriptBuilder.createInputScript(txSig, btcECKey));
+
+        Sha256Hash sighashFromSignedBtcTx = extractSighashFromSignedBtcTx(btcTransactionToSign);
+        Assertions.assertEquals(sighash, sighashFromSignedBtcTx);
+    }
+
+
 
     @Test
     void test_sighash_is_unique_for_same_tx() throws Exception {
@@ -130,12 +183,6 @@ class PocBtcTransactionSighash {
         TransactionOutput output = new TransactionOutput(btcRegTestParams, t, Coin.COIN, new BtcECKey().toAddress(btcRegTestParams));
         t.addOutput(output);
         t.addInput(prevOut).setScriptSig(createBaseInputScriptThatSpendsFromTheFederation(federation));
-
-        SignatureCache signatureCache = new ReceivedTxSignatureCache();
-
-        ActivationConfig.ForBlock activations = mock(ActivationConfig.ForBlock.class);
-        List<LogInfo> logs = new ArrayList<>();
-        BridgeEventLogger eventLogger = new BrigeEventLoggerLegacyImpl(bridgeConstantsRegtest, activations, logs, signatureCache);
 
         Script inputScript = t.getInputs().get(0).getScriptSig();
         List<ScriptChunk> chunks = inputScript.getChunks();
