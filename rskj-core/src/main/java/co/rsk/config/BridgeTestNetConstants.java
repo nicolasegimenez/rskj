@@ -159,7 +159,7 @@ public class BridgeTestNetConstants extends BridgeConstants {
 
         maxInputsPerPegoutTransaction = 50;
 
-        numberOfBlocksBetweenPegouts = 60; // 3 hours of RSK blocks (considering 1 block every 30 seconds)
+        numberOfBlocksBetweenPegouts = 20; // 3 hours of RSK blocks (considering 1 block every 30 seconds)
     }
 
     public static BridgeTestNetConstants getInstance() {
