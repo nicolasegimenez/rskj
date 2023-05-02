@@ -52,6 +52,9 @@ public class RskSystemProperties extends SystemProperties {
     private static final String MINER_REWARD_ADDRESS_CONFIG = "miner.reward.address";
     private static final String MINER_COINBASE_SECRET_CONFIG = "miner.coinbase.secret";
     private static final String RPC_MODULES_PATH = "rpc.modules";
+    private static final String RPC_ETH_GET_LOGS_MAX_BLOCKS_TO_QUERY = "rpc.eth_getLogs.maxBlocksToQuery";
+    private static final String RPC_ETH_GET_LOGS_MAX_LOGS_TO_RETURN = "rpc.eth_getLogs.maxLogsToReturn";
+
     private static final int CHUNK_SIZE = 192;
 
     //TODO: REMOVE THIS WHEN THE LocalBLockTests starts working with REMASC
@@ -453,6 +456,13 @@ public class RskSystemProperties extends SystemProperties {
         return configFromFiles.getBoolean("rpc.zeroSignatureIfRemasc");
     }
 
+    public long getRpcEthGetLogsMaxBlockToQuery(){
+        return configFromFiles.getLong(RPC_ETH_GET_LOGS_MAX_BLOCKS_TO_QUERY);
+    }
+
+    public long getRpcEthGetLogsMaxLogsToReturn(){
+        return configFromFiles.getLong(RPC_ETH_GET_LOGS_MAX_LOGS_TO_RETURN);
+    }
     private void fetchMethodTimeout(Config configElement, Map<String, Long> methodTimeoutMap) {
         configElement.getObject("methods.timeout")
                 .unwrapped()
