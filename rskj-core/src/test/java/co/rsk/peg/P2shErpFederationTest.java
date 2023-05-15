@@ -105,6 +105,52 @@ class P2shErpFederationTest {
     }
 
     @Test
+    void getPowPegAddress_testnet_test() {
+        BridgeConstants bridgeTestNetConstants = BridgeTestNetConstants.getInstance();
+
+        List<BtcECKey> powpegKeys = Arrays.stream(new String[]{
+            "0362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a124",
+            "03c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db",
+            "035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe",
+            "02fd9b5a58d8e1ac73afee2828b3b2b20338436622971862f2a284c62ad754b864"
+        }).map(hex -> BtcECKey.fromPublicOnly(Hex.decode(hex))).collect(Collectors.toList());
+        Address expectedAddress = Address.fromBase58(
+            bridgeTestNetConstants.getBtcParams(),
+            "2N5mLpx4k6CoizwKA7Wb8PZuNVZG1KA7neK"
+        );
+
+        Federation p2shErpFederation = new P2shErpFederation(
+            FederationTestUtils.getFederationMembersWithBtcKeys(powpegKeys),
+            Instant.now(),
+            0L,
+            bridgeTestNetConstants.getBtcParams(),
+            bridgeTestNetConstants.getErpFedPubKeysList(),
+            bridgeTestNetConstants.getErpFedActivationDelay(),
+            mock(ActivationConfig.ForBlock.class)
+        );
+
+        assertEquals(expectedAddress, p2shErpFederation.getAddress());
+
+        String redeemScriptAsHex = "64532102fd9b5a58d8e1ac73afee2828b3b2b20338436622971862f2a284c62ad754b86421035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe210362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a1242103c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db54ae6702d002b2755221029cecea902067992d52c38b28bf0bb2345bda9b21eca76b16a17c477a64e433012103284178e5fbcc63c54c3b38e3ef88adf2da6c526313650041b0ef955763634ebd2103b9fc46657cf72a1afa007ecf431de1cd27ff5cc8829fa625b66ca47b967e6b2453ae68";
+        byte[] redeemScriptBytes = Hex.decode(redeemScriptAsHex);
+
+        Script redeemScript = new Script(redeemScriptBytes);
+
+        System.out.println(redeemScript);
+        assertEquals(redeemScript, p2shErpFederation.getRedeemScript());
+
+        List<BtcECKey> emergencyKeys = bridgeTestNetConstants.getErpFedPubKeysList();
+        long activationDelay = bridgeTestNetConstants.getErpFedActivationDelay();
+
+        validateP2shErpRedeemScript(
+            p2shErpFederation.getRedeemScript(),
+            powpegKeys,
+            emergencyKeys,
+            activationDelay
+        );
+    }
+
+    @Test
     void getPowPegAddress_mainnet() {
         BridgeConstants bridgeMainNetConstants = BridgeMainNetConstants.getInstance();
 

@@ -231,6 +231,87 @@ class ErpFederationTest {
     }
 
     @Test
+    void createErpFederation_testnet_constants_after_RSKIP293_test() {
+        BridgeTestNetConstants constants = BridgeTestNetConstants.getInstance();
+        boolean isRskip293Active = true;
+        when(activations.isActive(ConsensusRule.RSKIP293)).thenReturn(isRskip293Active);
+
+        List<BtcECKey> powpegKeys = Arrays.stream(new String[]{
+            "0362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a124",
+            "03c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db",
+            "035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe"
+        }).map(hex -> BtcECKey.fromPublicOnly(Hex.decode(hex))).collect(Collectors.toList());
+
+        Federation erpFederation = new ErpFederation(
+            FederationTestUtils.getFederationMembersWithBtcKeys(powpegKeys),
+            Instant.now(),
+            0L,
+            constants.getBtcParams(),
+            constants.getErpFedPubKeysList(),
+            constants.getErpFedActivationDelay(),
+            activations
+        );
+
+        String redeemScriptAsHex = "645221035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe210362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a1242103c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db536702d002b2755221029cecea902067992d52c38b28bf0bb2345bda9b21eca76b16a17c477a64e433012103284178e5fbcc63c54c3b38e3ef88adf2da6c526313650041b0ef955763634ebd2103b9fc46657cf72a1afa007ecf431de1cd27ff5cc8829fa625b66ca47b967e6b245368ae";
+        byte[] redeemScriptBytes = Hex.decode(redeemScriptAsHex);
+
+        Script redeemScript = new Script(redeemScriptBytes);
+
+        System.out.println(redeemScript);
+        assertEquals(redeemScript, erpFederation.getRedeemScript());
+
+        validateErpRedeemScript(
+            erpFederation.getRedeemScript(),
+            powpegKeys,
+            constants.getErpFedPubKeysList(),
+            constants.getErpFedActivationDelay(),
+            isRskip293Active
+        );
+    }
+
+    @Test
+    void createErpFederation_testnet_constants_after_RSKIP293_test2() {
+        BridgeTestNetConstants constants = BridgeTestNetConstants.getInstance();
+        boolean isRskip293Active = true;
+        when(activations.isActive(ConsensusRule.RSKIP293)).thenReturn(isRskip293Active);
+
+        List<BtcECKey> powpegKeys = Arrays.stream(new String[]{
+            "0362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a124",
+            "03c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db",
+            "035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe",
+            "02fd9b5a58d8e1ac73afee2828b3b2b20338436622971862f2a284c62ad754b864"
+        }).map(hex -> BtcECKey.fromPublicOnly(Hex.decode(hex))).collect(Collectors.toList());
+
+        Federation erpFederation = new ErpFederation(
+            FederationTestUtils.getFederationMembersWithBtcKeys(powpegKeys),
+            Instant.now(),
+            0L,
+            constants.getBtcParams(),
+            constants.getErpFedPubKeysList(),
+            constants.getErpFedActivationDelay(),
+            activations
+        );
+
+        String redeemScriptAsHex = "64532102fd9b5a58d8e1ac73afee2828b3b2b20338436622971862f2a284c62ad754b86421035834d4b1e6701d3612d51b81d666d1088ff48032d79a3def02ab2d46c8f4d3fe210362634ab57dae9cb373a5d536e66a8c4f67468bbcfb063809bab643072d78a1242103c5946b3fbae03a654237da863c9ed534e0878657175b132b8ca630f245df04db54ae6702d002b2755221029cecea902067992d52c38b28bf0bb2345bda9b21eca76b16a17c477a64e433012103284178e5fbcc63c54c3b38e3ef88adf2da6c526313650041b0ef955763634ebd2103b9fc46657cf72a1afa007ecf431de1cd27ff5cc8829fa625b66ca47b967e6b2453ae68";
+        byte[] redeemScriptBytes = Hex.decode(redeemScriptAsHex);
+
+        Script redeemScript = new Script(redeemScriptBytes);
+
+        System.out.println(redeemScript);
+        assertEquals(redeemScript, erpFederation.getRedeemScript());
+
+        validateErpRedeemScript(
+            erpFederation.getRedeemScript(),
+            powpegKeys,
+            constants.getErpFedPubKeysList(),
+            constants.getErpFedActivationDelay(),
+            isRskip293Active
+        );
+    }
+
+
+
+    @Test
     void createErpFederation_mainnet_constants_before_RSKIP293() {
         createErpFederation(BridgeMainNetConstants.getInstance(), false);
     }
