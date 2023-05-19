@@ -20,13 +20,20 @@ package co.rsk.jmh.web3.plan;
 
 import co.rsk.jmh.helpers.BenchmarkHelper;
 import co.rsk.jmh.web3.BenchmarkWeb3Exception;
+import co.rsk.jmh.web3.e2e.RskModuleWeb3j;
 import co.rsk.jmh.web3.factory.TransactionFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.BenchmarkParams;
+import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.math.BigInteger;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 @State(Scope.Benchmark)
@@ -35,6 +42,7 @@ public class TransactionPlan extends BasePlan {
     private Iterator<Transaction> transactionsVT;
     private Iterator<Transaction> transactionsContractCreation;
     private Iterator<Transaction> transactionsContractCall;
+    private JsonNode ethBlockJsonNode;
 
     @Override
     @Setup(Level.Trial) // move to "Level.Iteration" in case we set a batch size at some point
@@ -54,6 +62,21 @@ public class TransactionPlan extends BasePlan {
         transactionsVT = TransactionFactory.createTransactions(TransactionFactory.TransactionType.VT, configuration, nonce, numOfTransactions).listIterator();
         transactionsContractCreation = TransactionFactory.createTransactions(TransactionFactory.TransactionType.CONTRACT_CREATION, configuration, nonce, numOfTransactions).listIterator();
         transactionsContractCall = TransactionFactory.createTransactions(TransactionFactory.TransactionType.CONTRACT_CALL, configuration, nonce, numOfTransactions).listIterator();
+
+        ethBlockJsonNode = getBlockJsonNode(configuration.getString("eth.blockNumber"));
+    }
+
+    private JsonNode getBlockJsonNode(String ethBlockNumber) {
+        try {
+            Request<?, RskModuleWeb3j.GenericJsonResponse> req = rskModuleWeb3j.ethGetBlockByNumber(ethBlockNumber);
+            RskModuleWeb3j.GenericJsonResponse response = req.send();
+            String ethBlockStr = response.getResult().toString();
+            return objectMapper.readTree(ethBlockStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @TearDown(Level.Trial) // move to "Level.Iteration" in case we set a batch size at some point
@@ -72,5 +95,27 @@ public class TransactionPlan extends BasePlan {
 
     public Iterator<Transaction> getTransactionsContractCall() {
         return transactionsContractCall;
+    }
+
+    public JsonNode getEthBlockJsonNode() {
+        return ethBlockJsonNode;
+    }
+
+    public RskModuleWeb3j.EthCallArguments getEthCallArguments(int index) {
+        JsonNode transaction = ethBlockJsonNode.get("transactions").get(index);
+
+        RskModuleWeb3j.EthCallArguments args = new RskModuleWeb3j.EthCallArguments();
+
+        args.setFrom(Optional.ofNullable(transaction.get("from")).map(JsonNode::asText).orElse(null));
+        args.setTo(Optional.ofNullable(transaction.get("to")).map(JsonNode::asText).orElse(null));
+        args.setGas(Optional.ofNullable(transaction.get("gas")).map(JsonNode::asText).orElse(null));
+        args.setGasPrice(Optional.ofNullable(transaction.get("gasPrice")).map(JsonNode::asText).orElse(null));
+        args.setValue(Optional.ofNullable(transaction.get("value")).map(JsonNode::asText).orElse(null));
+        args.setNonce(Optional.ofNullable(transaction.get("nonce")).map(JsonNode::asText).orElse(null));
+        args.setChainId(Optional.ofNullable(transaction.get("chainId")).map(JsonNode::asText).orElse(null));
+        args.setData("0xd96a094a0000000000000000000000000000000000000000000000000000000000000001");
+        args.setType("0x00");
+
+        return args;
     }
 }

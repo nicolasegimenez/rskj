@@ -22,6 +22,7 @@ import co.rsk.jmh.web3.plan.BasePlan;
 import co.rsk.jmh.web3.plan.DebugPlan;
 import co.rsk.jmh.web3.plan.EstimatePlan;
 import co.rsk.jmh.web3.plan.GetLogsPlan;
+import co.rsk.jmh.web3.plan.TransactionPlan;
 import org.openjdk.jmh.annotations.*;
 import org.web3j.protocol.core.DefaultBlockParameter;
 
@@ -42,6 +43,11 @@ import java.util.stream.Stream;
 public class BenchmarkWeb3 {
 
     private static final int TRANSACTION_ACCOUNT_SLOTS = 16; // transaction.accountSlots = 16
+
+    @Benchmark
+    public void ethCall(TransactionPlan plan) throws BenchmarkWeb3Exception {
+        plan.getWeb3Connector().ethCall(plan.getEthCallArguments(0), plan.getEthBlockJsonNode().get("number").asText());
+    }
 
     @Benchmark
     public void ethGetBalance(BasePlan plan) throws BenchmarkWeb3Exception {
