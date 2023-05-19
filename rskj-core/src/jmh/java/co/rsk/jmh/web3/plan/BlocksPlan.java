@@ -1,3 +1,21 @@
+/*
+ * This file is part of RskJ
+ * Copyright (C) 2023 RSK Labs Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package co.rsk.jmh.web3.plan;
 
 import co.rsk.jmh.web3.BenchmarkWeb3Exception;
@@ -14,6 +32,7 @@ public class BlocksPlan extends BasePlan {
     private String blockHash;
     private BigInteger blockNumber;
     private String txHash;
+    private String txBlockHash;
     private int txIndex;
     //TODO get a valid address
     private String address;
@@ -34,9 +53,11 @@ public class BlocksPlan extends BasePlan {
         blockHash = configuration.getString("block.hash");
         blockNumber = BigInteger.valueOf(configuration.getLong("block.number"));
         txHash = configuration.getString("tx.hash");
+        txBlockHash = configuration.getString("tx.blockHash");
         txIndex = configuration.getInt("tx.index");
         address = configuration.getString("address");
         uncleIndex = BigInteger.valueOf(configuration.getInt("uncle.index"));
+
     }
 
     public String getBlockHash() {
@@ -61,5 +82,9 @@ public class BlocksPlan extends BasePlan {
 
     public BigInteger getUncleIndex() {
         return uncleIndex;
+    }
+
+    public String getTxBlockHash() {
+        return txBlockHash;
     }
 }

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.OkHttpClient;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
-import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
@@ -223,6 +222,51 @@ public class Web3ConnectorE2E implements Web3Connector {
     }
 
     @Override
+    public RskWeb3j.GenericJsonResponse rskGetRawTransactionReceiptByHash(String txHash) throws HttpRpcException {
+        try {
+            Request<?, RskWeb3j.GenericJsonResponse> request = web3j.rskGetRawTransactionReceiptByHash(txHash);
+            return request.send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpRpcException(e);
+        }
+    }
+
+    @Override
+    public RskWeb3j.GenericJsonResponse rskGetTransactionReceiptNodesByHash(String blockHash, String txHash) throws HttpRpcException {
+        try {
+            Request<?, RskWeb3j.GenericJsonResponse> request = web3j.rskGetTransactionReceiptNodesByHash(blockHash, txHash);
+            return request.send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpRpcException(e);
+        }
+    }
+
+    @Override
+    public RskWeb3j.GenericJsonResponse rskGetRawBlockHeaderByHash(String blockHash) throws HttpRpcException {
+        try {
+            Request<?, RskWeb3j.GenericJsonResponse> request = web3j.rskGetRawBlockHeaderByHash(blockHash);
+            return request.send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpRpcException(e);
+        }
+    }
+
+    @Override
+    public RskWeb3j.GenericJsonResponse rskGetRawBlockHeaderByNumber(BigInteger blockNumber) throws HttpRpcException {
+        try {
+            Request<?, RskWeb3j.GenericJsonResponse> request = web3j.rskGetRawBlockHeaderByNumber(DefaultBlockParameter.valueOf(blockNumber));
+            return request.send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpRpcException(e);
+        }
+    }
+
+
+    @Override
     public JsonNode debugTraceTransaction(String txHash) throws HttpRpcException {
         try {
             Request<?, RskWeb3j.GenericJsonResponse> request = web3j.debugTraceTransaction(txHash);
@@ -271,7 +315,7 @@ public class Web3ConnectorE2E implements Web3Connector {
     }
 
     @Override
-    public Response<EthBlock.Block> ethGetBlockByHash(String blockHash) throws HttpRpcException {
+    public EthBlock ethGetBlockByHash(String blockHash) throws HttpRpcException {
         try {
             Request<?, EthBlock> request = web3j.ethGetBlockByHash(blockHash, false);
             return request.send();
@@ -294,7 +338,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthTransaction ethGetTransactionByHash(String txHash) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthTransaction> request = web3j.ethGetTransactionByHash(txHash);
             return request.send();
         } catch (IOException e) {
@@ -306,7 +350,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthTransaction ethGetTransactionByBlockHashAndIndex(String blockHash, int index) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthTransaction> request = web3j.ethGetTransactionByBlockHashAndIndex(blockHash, BigInteger.valueOf(index));
             return request.send();
         } catch (IOException e) {
@@ -317,7 +361,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthTransaction ethGetTransactionByBlockNumberAndIndex(BigInteger blockNumber, int index) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthTransaction> request = web3j.ethGetTransactionByBlockNumberAndIndex(DefaultBlockParameter.valueOf(blockNumber), BigInteger.valueOf(index));
             return request.send();
         } catch (IOException e) {
@@ -328,7 +372,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetTransactionReceipt ethGetTransactionReceipt(String txHash) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetTransactionReceipt> request = web3j.ethGetTransactionReceipt(txHash);
             return request.send();
         } catch (IOException e) {
@@ -339,7 +383,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetTransactionCount ethGetTransactionCount(String address, BigInteger blockNumber) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetTransactionCount> request = web3j.ethGetTransactionCount(address, DefaultBlockParameter.valueOf(blockNumber));
             return request.send();
         } catch (IOException e) {
@@ -350,7 +394,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetBlockTransactionCountByHash ethGetTransactionCountByHash(String blockHash) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetBlockTransactionCountByHash> request = web3j.ethGetBlockTransactionCountByHash(blockHash);
             return request.send();
         } catch (IOException e) {
@@ -361,7 +405,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetBlockTransactionCountByNumber ethGetBlockTransactionCountByNumber(BigInteger blockNumber) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetBlockTransactionCountByNumber> request = web3j.ethGetBlockTransactionCountByNumber(DefaultBlockParameter.valueOf(blockNumber));
             return request.send();
         } catch (IOException e) {
@@ -372,7 +416,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetUncleCountByBlockHash ethGetUncleCountByBlockHash(String blockHash) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetUncleCountByBlockHash> request = web3j.ethGetUncleCountByBlockHash(blockHash);
             return request.send();
         } catch (IOException e) {
@@ -383,7 +427,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthGetUncleCountByBlockNumber ethGetUncleCountByBlockNumber(BigInteger blockNumber) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthGetUncleCountByBlockNumber> request = web3j.ethGetUncleCountByBlockNumber(DefaultBlockParameter.valueOf(blockNumber));
             return request.send();
         } catch (IOException e) {
@@ -394,7 +438,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthBlock ethGetUncleByBlockHashAndIndex(String blockHash, BigInteger index) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthBlock> request = web3j.ethGetUncleByBlockHashAndIndex(blockHash, index);
             return request.send();
         } catch (IOException e) {
@@ -405,7 +449,7 @@ public class Web3ConnectorE2E implements Web3Connector {
 
     @Override
     public EthBlock ethGetUncleByBlockNumberAndIndex(BigInteger blockNumber, BigInteger index) throws HttpRpcException {
-        try{
+        try {
             Request<?, EthBlock> request = web3j.ethGetUncleByBlockNumberAndIndex(DefaultBlockParameter.valueOf(blockNumber), index);
             return request.send();
         } catch (IOException e) {

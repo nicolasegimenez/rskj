@@ -19,6 +19,7 @@
 package co.rsk.jmh.web3;
 
 import co.rsk.jmh.web3.e2e.HttpRpcException;
+import co.rsk.jmh.web3.e2e.RskWeb3j;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Response;
@@ -58,6 +59,14 @@ public interface Web3Connector {
     String ethGetBlockHashByNumber(BigInteger blockNumber) throws HttpRpcException;
 
     String rskGetRawBlockHeaderByNumber(String bnOrId) throws HttpRpcException;
+
+    RskWeb3j.GenericJsonResponse rskGetRawTransactionReceiptByHash(String txHash) throws HttpRpcException;
+
+    RskWeb3j.GenericJsonResponse rskGetTransactionReceiptNodesByHash(String blockHash, String txHash) throws HttpRpcException;
+
+    RskWeb3j.GenericJsonResponse rskGetRawBlockHeaderByHash(String blockHash) throws HttpRpcException;
+
+    RskWeb3j.GenericJsonResponse rskGetRawBlockHeaderByNumber(BigInteger blockNumber) throws HttpRpcException;
 
     JsonNode debugTraceTransaction(String txHash) throws HttpRpcException;
 
